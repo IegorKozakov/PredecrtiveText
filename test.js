@@ -9,7 +9,7 @@ function is_interleave(a, b, c) {
   let isValid = true;
   let prevLetterPositions;
 
-  sequenceA.forEach((letter, i) => {
+  sequenceA.every((letter, i) => {
     const indexes = [];
     validationStr.forEach((char, j) => {
       if (char === letter) {
@@ -19,12 +19,60 @@ function is_interleave(a, b, c) {
 
     if (i === 0) {
       prevLetterPositions = indexes;
-    } else {
-      indexes.some((position, k) => {
+      return true
+    } else if (i < validationStr.length) {
+      isValid = indexes.some((current) => {
+        return prevLetterPositions.some(prev => {
+          if (current > prev) {
+            validationStr[prev] = null;
+            prevLetterPositions = indexes;
 
+            if (i === sequenceA.length - 1) {
+              validationStr[current] = null;
+            }
+
+            return true;
+          }
+          return false;
+        });
       });
+      return isValid
     }
+  });
 
+  if (!isValid) {
+    return false;
+  }
+
+  sequenceB.every((letter, i) => {
+    const indexes = [];
+    validationStr.forEach((char, j) => {
+      if (char === letter) {
+        indexes.push(j)
+      }
+    });
+
+    if (i === 0) {
+      prevLetterPositions = indexes;
+      return true
+    } else if (i < validationStr.length) {
+      isValid = indexes.some((current) => {
+        return prevLetterPositions.some(prev => {
+          if (current > prev) {
+            validationStr[prev] = null;
+            prevLetterPositions = indexes;
+
+            if (i === sequenceB.length - 1) {
+              validationStr[current] = null;
+            }
+
+            return true;
+          }
+          return false;
+        });
+      });
+      return isValid
+    }
   });
 
   return isValid;
