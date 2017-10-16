@@ -38,8 +38,13 @@ module.exports = class Predective {
     }
 
     const sequence = this.getSequence(numericWord);
-    const words = this.getWordListRecursion(sequence, this.dictionaryTree, 0, '', []);
-    return words;
+    const wordsRec = this.getWordListRecursion(sequence, this.dictionaryTree, 0, '', []);
+    const wordsCycle = this.getWordList(sequence);
+
+    return {
+      Recursion: wordsRec,
+      Cycle: wordsCycle
+    };
   }
 
   getSequence(numericWord) {
@@ -61,8 +66,6 @@ module.exports = class Predective {
     const currentSequence = sequence[currentDepth];
 
     let sequenceTree = this.dictionaryTree;
-    let wordTree = {};
-    let inUseTree = {};
 
     currentSequence.split('').forEach(letter => {
       let word = currentWord;
@@ -79,6 +82,68 @@ module.exports = class Predective {
       }
     })
 
+    return words;
+  }
+
+  getWordList(sequence) {
+    const words = [];
+    const totalWordLength = sequence.length;
+    const sequenceMap = sequence.map(i => 0);
+
+    let finished = false;
+    let currentSequencePosition = 0;
+    let word = ''
+    let tree = this.dictionaryTree;
+    let counter = 0;
+
+    while (sequenceMap[0] < sequence[0].length) {
+      counter += 1;
+
+      const currentSequence = sequence[currentSequencePosition];
+      const curentSequenceLength = currentSequence.length;
+      const letterPosition = sequenceMap[currentSequencePosition];
+
+      if (letterPosition + 1 > curentSequenceLength) {
+        for (let i = currentSequencePosition; i < totalWordLength; i++) {
+          sequenceMap[i] = 0
+        }
+
+        sequenceMap[currentSequencePosition - 1] += 1;
+        currentSequencePosition -= 1;
+        
+        word = '';
+        tree = this.dictionaryTree;
+        
+        for (let i = 0; i < currentSequencePosition; i++) {
+          const letter = sequence[i].charAt(sequenceMap[i]);
+          word += letter;
+          tree = tree[letter];
+        }
+
+        continue;
+      }
+
+      const letter = currentSequence.charAt(letterPosition);
+      
+      if (typeof tree[letter] === 'object') {
+        const currentWord = word + letter;
+
+        if (currentSequencePosition + 1 === totalWordLength) {
+          if (typeof tree[letter]['$'] === 'number') {
+            words.push(currentWord);
+          }
+          sequenceMap[currentSequencePosition] += 1;
+        } else if(currentSequencePosition + 1 < totalWordLength) {
+          tree = tree[letter];
+          word = currentWord;
+          currentSequencePosition +=1;
+        }
+      } else {
+        sequenceMap[currentSequencePosition] += 1;
+      }
+    }
+    
+    
     return words;
   }
 }
